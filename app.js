@@ -4,12 +4,14 @@ const websocket = require('ws');
 class FilteredStream {
     token;
     url;
-    callback() {}
 
     constructor(callback) {
         this.callback = callback;
         this.token = process.env.BEARER_TOKEN;
         this.url = 'https://api.twitter.com/2/tweets/search/stream';
+    }
+
+    callback() {
     }
 
     streamConnect() {
@@ -82,7 +84,7 @@ class UnitySocket {
         try {
             console.log("send called");
             this.clients.forEach(client => {
-                 client.send(JSON.stringify(data));
+                client.send(JSON.stringify(data));
             });
             console.log("send");
         } catch (e) {
