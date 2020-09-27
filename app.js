@@ -1,6 +1,8 @@
 const needle = require('needle');
 const websocket = require('ws');
 
+let testObject = '{"data":{"author_id":"1221855747954208768","id":"1309906146795290624","text":"だめくさい #フレネルさんテスト"},"includes":{"users":[{"id":"1221855747954208768","name":"フレネル","username":"fres_nel"}]},"matching_rules":[{"id":1308202563854950400,"tag":null}]}';
+
 class FilteredStream {
     token;
     url;
@@ -8,10 +10,20 @@ class FilteredStream {
     constructor(callback) {
         this.callback = callback;
         this.token = process.env.BEARER_TOKEN;
-        this.url = 'https://api.twitter.com/2/tweets/search/stream';
+        this.url = 'https://api.twitter.com/2/tweets/search/stream?expansions=author_id';
     }
 
     callback() {
+    }
+
+    parse(raw) {
+        const json = JSON.parse(raw);
+        const result = {
+            username: json.include.users[0].name,
+            userid: json.include.users[0].username,
+            tweet: json.text
+        };
+        return result;
     }
 
     streamConnect() {
@@ -24,8 +36,7 @@ class FilteredStream {
 
         stream.on('data', data => {
             try {
-                const json = JSON.parse(data);
-                console.log(json);
+                const json = this.parse(data);
                 this.callback(json);
             } catch (e) {
             }
@@ -68,7 +79,7 @@ class UnitySocket {
 
             ws.on('message', message => {
                 console.log(message);
-                console.log(this.clients);
+                this.send({text: "test message"});
             });
 
             ws.on('close', () => {
@@ -96,4 +107,7 @@ class UnitySocket {
 const unity = new UnitySocket();
 const stream = new FilteredStream(unity.send);
 stream.connect();
+
+const testjson = stream.parse(testObject);
+console.log(testjson);
 
